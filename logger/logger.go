@@ -3,7 +3,6 @@ package logger
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/natefinch/lumberjack"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"net"
@@ -13,21 +12,22 @@ import (
 	"runtime/debug"
 	"strings"
 	"time"
+	"webapp/settings"
 )
 
 var logger *zap.Logger
 
 // Init 初始化Logger
-func Init() (err error) {
+func Init(conf *settings.AppConfig) (err error) {
 	writeSyncer := getLogWriter(
-		viper.GetString("log.filename"),
-		viper.GetInt("log.max_size"),
-		viper.GetInt("log.max_backup"),
-		viper.GetInt("log.max_age"),
+		conf.FileName,
+		conf.MaxSize,
+		conf.MaxBackup,
+		conf.MaxAge,
 	)
 	encoder := getEncoder()
 	var l = new(zapcore.Level)
-	err = l.UnmarshalText([]byte(viper.GetString("log.level")))
+	err = l.UnmarshalText([]byte(conf.Level))
 	core := zapcore.NewCore(encoder, writeSyncer, l)
 	logger = zap.New(core, zap.AddCaller())
 	zap.ReplaceGlobals(logger) // 替换zap包中全局的logger实例，后续在其他包中只需使用zap.L()调用即可
@@ -89,7 +89,8 @@ func GinRecovery(stack bool) gin.HandlerFunc {
 				var brokenPipe bool
 				if ne, ok := err.(*net.OpError); ok {
 					if se, ok := ne.Err.(*os.SyscallError); ok {
-						if strings.Contains(strings.ToLower(se.Error()), "broken pipe") || strings.Contains(strings.ToLower(se.Error()), "connection reset by peer") {
+						if strings.Contains(strings.ToLower(se.Error()), "broken pipe") ||
+							strings.Contains(strings.ToLower(se.Error()), "connection reset by peer") {
 							brokenPipe = true
 						}
 					}

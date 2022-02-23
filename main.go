@@ -16,17 +16,17 @@ func main() {
 		fmt.Println("settings init failed", err)
 	}
 	// 2. 设置日志
-	if err := logger.Init(); err != nil {
+	if err := logger.Init(settings.Conf); err != nil {
 		fmt.Println("Logger init failed", err)
 	}
 	defer zap.L().Sync()
 	// 3. 连接数据库
-	if err := mysql.Init(); err != nil {
+	if err := mysql.Init(settings.Conf); err != nil {
 		fmt.Println("Mysql init failed", err)
 	}
 	defer mysql.Close()
 	// 4. 连接redis
-	if err := redis.Init(); err != nil {
+	if err := redis.Init(settings.Conf); err != nil {
 		fmt.Println("redis init failed", err)
 	}
 	defer redis.Close()
