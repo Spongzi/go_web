@@ -18,7 +18,7 @@ func main() {
 		fmt.Println("settings init failed", err)
 	}
 	// 2. 设置日志
-	if err := logger.Init(settings.Conf.LogConfig); err != nil {
+	if err := logger.Init(settings.Conf.LogConfig, settings.Conf.Mode); err != nil {
 		fmt.Println("Logger init failed", err)
 	}
 	defer func(l *zap.Logger) {
@@ -41,12 +41,11 @@ func main() {
 	if err := sf.Init(settings.Conf.StartTime, settings.Conf.MachineID); err != nil {
 		fmt.Println("snowflake init failed", err)
 	}
-	fmt.Println("测试", sf.GenID())
 	if err := translator.InitTrans("zh"); err != nil {
 		fmt.Println("translator failed", err)
 	}
 	// 5. 路由管理
-	r := routers.SetUp()
+	r := routers.SetUp(settings.Conf.Mode)
 	// 6. 启动服务
 	panic(r.Run(":8080"))
 }

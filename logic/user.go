@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"errors"
 	"webapp/dao/mysql"
 	"webapp/models"
 	"webapp/pkg/sf"
@@ -8,10 +9,9 @@ import (
 
 func Register(p *models.ParamsUser) (err error) {
 	// 校验用户是否存在
-	err = mysql.CheckUserExist(p.Username)
-	if err != nil {
-		// 数据库查询失败
-		return
+	isExist := mysql.CheckUserExist(p.Username)
+	if isExist {
+		return errors.New("用户名已存在，请更换用户名")
 	}
 	// 生成UID
 	userId := sf.GenID()
@@ -23,6 +23,18 @@ func Register(p *models.ParamsUser) (err error) {
 	}
 	// 插入用户
 	err = mysql.InsertUser(&u)
-	// 密码加密
+	return
+}
+
+func Login(p *models.ParamsLoginUser) (err error) {
+	// 验证数据库里面的人名和密码是否正确
+	u := models.User{
+		Username: p.Username,
+		Password: p.Password,
+	}
+	err = mysql.CheckingPassword(&u)
+	if err != nil {
+		return err
+	}
 	return
 }
