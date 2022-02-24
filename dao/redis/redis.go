@@ -9,12 +9,12 @@ import (
 
 var rdb *redis.Client
 
-func Init(conf *settings.AppConfig) (err error) {
+func Init(conf *settings.RedisConfig) (err error) {
 	rdb = redis.NewClient(&redis.Options{
 		Addr: fmt.Sprintf("%v:%v",
-			conf.RedisConfig.Host,
-			conf.RedisConfig.Port),
-		Password: conf.RedisConfig.Password,
+			conf.Host,
+			conf.Port),
+		Password: conf.Password,
 		DB:       conf.Db,
 		PoolSize: conf.PoolSize,
 	})

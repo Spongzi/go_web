@@ -18,7 +18,7 @@ import (
 var logger *zap.Logger
 
 // Init 初始化Logger
-func Init(conf *settings.AppConfig) (err error) {
+func Init(conf *settings.LogConfig) (err error) {
 	writeSyncer := getLogWriter(
 		conf.FileName,
 		conf.MaxSize,

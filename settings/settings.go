@@ -7,16 +7,22 @@ import (
 	"github.com/spf13/viper"
 )
 
-var Conf = new(AppConfig) // 用来保存程序的所有信息
+var Conf = new(multipleConfig) // 用来保存程序的所有信息
 
-type AppConfig struct {
-	Name         string `mapstructure:"name"`
-	Mode         string `mapstructure:"mode"`
-	Version      string `mapstructure:"version"`
-	Port         int    `mapstructure:"port"`
+type multipleConfig struct {
+	*AppConfig   `mapstructure:"app"`
 	*LogConfig   `mapstructure:"log"`
 	*MysqlConfig `mapstructure:"mysql"`
 	*RedisConfig `mapstructure:"redis"`
+}
+
+type AppConfig struct {
+	Name      string `mapstructure:"name"`
+	Mode      string `mapstructure:"mode"`
+	Version   string `mapstructure:"version"`
+	Port      int    `mapstructure:"port"`
+	StartTime string `mapstructure:"start_time"`
+	MachineID int64  `mapstructure:"machine_id"`
 }
 
 type LogConfig struct {
@@ -46,15 +52,21 @@ type RedisConfig struct {
 }
 
 func Init() (err error) {
-	viper.SetConfigFile("../config.yaml")
-	viper.AddConfigPath("./")
+	viper.SetConfigFile("./conf/config.yaml")
+	//viper.AddConfigPath("./conf")
 	err = viper.ReadInConfig() // 读取配置信息
 	// 把读取到的配置文件反序列换到Conf变量中
-	viper.Unmarshal(Conf)
+	if err = viper.Unmarshal(Conf); err != nil {
+		fmt.Println("Unmarshal failed!", err)
+		return
+	}
 	viper.WatchConfig() //检测
 	viper.OnConfigChange(func(in fsnotify.Event) {
 		fmt.Println("配置文件修改了")
-		viper.Unmarshal(Conf)
+		if err = viper.Unmarshal(Conf); err != nil {
+			fmt.Println("Unmarshal failed!", err)
+			return
+		}
 	})
 	return
 }

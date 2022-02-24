@@ -6,6 +6,7 @@ import (
 	"webapp/dao/mysql"
 	"webapp/dao/redis"
 	"webapp/logger"
+	sfid "webapp/pkg/sonwflakeID"
 	"webapp/routers"
 	"webapp/settings"
 )
@@ -16,20 +17,25 @@ func main() {
 		fmt.Println("settings init failed", err)
 	}
 	// 2. 设置日志
-	if err := logger.Init(settings.Conf); err != nil {
+	if err := logger.Init(settings.Conf.LogConfig); err != nil {
 		fmt.Println("Logger init failed", err)
 	}
 	defer zap.L().Sync()
 	// 3. 连接数据库
-	if err := mysql.Init(settings.Conf); err != nil {
+	if err := mysql.Init(settings.Conf.MysqlConfig); err != nil {
 		fmt.Println("Mysql init failed", err)
 	}
 	defer mysql.Close()
 	// 4. 连接redis
-	if err := redis.Init(settings.Conf); err != nil {
+	if err := redis.Init(settings.Conf.RedisConfig); err != nil {
 		fmt.Println("redis init failed", err)
 	}
 	defer redis.Close()
+	// 雪花生成ID
+	if err := sfid.Init(settings.Conf.StartTime, settings.Conf.MachineID); err != nil {
+		fmt.Println("snowflake init failed", err)
+	}
+	fmt.Println("测试", sfid.GenID())
 	// 5. 路由管理
 	r := routers.SetUp()
 	// 6. 启动服务

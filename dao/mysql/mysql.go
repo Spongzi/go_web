@@ -10,12 +10,12 @@ import (
 
 var db *sqlx.DB
 
-func Init(conf *settings.AppConfig) (err error) {
+func Init(conf *settings.MysqlConfig) (err error) {
 	dsn := fmt.Sprintf("%v:%v@tcp(%v:%v)/%v?charset=utf8mb4&parseTime=True",
 		conf.User,
-		conf.MysqlConfig.Password,
-		conf.MysqlConfig.Host,
-		conf.MysqlConfig.Port,
+		conf.Password,
+		conf.Host,
+		conf.Port,
 		conf.Dbname,
 	)
 	db, err = sqlx.Connect("mysql", dsn)
