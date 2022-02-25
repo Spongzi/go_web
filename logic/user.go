@@ -2,16 +2,18 @@ package logic
 
 import (
 	"errors"
+	"webapp/controllers/encode"
 	"webapp/dao/mysql"
 	"webapp/models"
+	"webapp/pkg/jwtToken"
 	"webapp/pkg/sf"
 )
 
-func Register(p *models.ParamsUser) (err error) {
+func Register(p *models.ParamsUser) (code encode.ResCode, err error) {
 	// 校验用户是否存在
 	isExist := mysql.CheckUserExist(p.Username)
 	if isExist {
-		return errors.New("用户名已存在，请更换用户名")
+		return encode.CodeUserExist, errors.New("用户名已存在，请更换用户名")
 	}
 	// 生成UID
 	userId := sf.GenID()
@@ -23,18 +25,22 @@ func Register(p *models.ParamsUser) (err error) {
 	}
 	// 插入用户
 	err = mysql.InsertUser(&u)
-	return
+	return encode.CodeSuccess, nil
 }
 
-func Login(p *models.ParamsLoginUser) (err error) {
+func Login(p *models.ParamsLoginUser) (token string, code encode.ResCode, err error) {
 	// 验证数据库里面的人名和密码是否正确
 	u := models.User{
 		Username: p.Username,
 		Password: p.Password,
 	}
-	err = mysql.CheckingPassword(&u)
+	code, err = mysql.CheckingPassword(&u)
 	if err != nil {
-		return err
+		return "", code, err
 	}
-	return
+	token, err = jwtToken.GenToken(u.UserId, u.Username)
+	if err != nil {
+		return "", encode.CodeServerBusy, err
+	}
+	return token, encode.CodeSuccess, nil
 }

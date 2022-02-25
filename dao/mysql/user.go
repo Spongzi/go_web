@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"go.uber.org/zap"
+	"webapp/controllers/encode"
 	"webapp/models"
 )
 
@@ -31,22 +32,22 @@ func InsertUser(user *models.User) (err error) {
 }
 
 // CheckingPassword 验证密码
-func CheckingPassword(p *models.User) error {
+func CheckingPassword(p *models.User) (code encode.ResCode, err error) {
 	if !CheckUserExist(p.Username) {
 		zap.L().Error("用户名不存在")
-		return errors.New("用户不存在")
+		return encode.CodeUserNotExist, errors.New("用户不存在")
 	}
 	sqlStr := "select password from USER where username = ?;"
 	var password string
-	err := db.Get(&password, sqlStr, p.Username)
+	err = db.Get(&password, sqlStr, p.Username)
 	if err != nil {
 		fmt.Println("get data failed!", err)
+		return encode.CodeServerBusy, err
 	}
-	password = encryptPassword(p.Password)
-	if password != p.Password {
-		return errors.New("密码错误")
+	if password != encryptPassword(p.Password) {
+		return encode.CodeInvalidPassword, errors.New("密码错误")
 	}
-	return nil
+	return encode.CodeSuccess, nil
 }
 
 func encryptPassword(oPassword string) string {

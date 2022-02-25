@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"net/http"
+	"webapp/controllers/encode"
 	"webapp/logic"
 	"webapp/models"
 	"webapp/pkg/translator"
@@ -18,32 +18,23 @@ func Register(c *gin.Context) {
 		errs, ok := err.(validator.ValidationErrors)
 		if !ok {
 			// 非validator.ValidationErrors类型错误直接返回
-			c.JSON(http.StatusOK, gin.H{
-				"msg": err.Error(),
-			})
+			ResponseError(c, encode.CodeInvalidParam)
 			return
 		}
 		// validator.ValidationErrors类型错误则进行翻译
-		c.JSON(http.StatusOK, gin.H{
-			"msg": errs.Translate(translator.Trans),
-		})
+		ResponseErrorWithMsg(c, encode.CodeInvalidPassword, errs.Translate(translator.Trans))
 		return
 	}
 	// 打印接收到的数据
 	fmt.Println(p)
 	// 业务处理
-	if err := logic.Register(p); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"status": c.Writer.Status(),
-			"msg":    err.Error(),
-		})
+	code, err := logic.Register(p)
+	if err != nil {
+		ResponseError(c, code)
 		return
 	}
 	// 返回JSON信息
-	c.JSON(http.StatusOK, gin.H{
-		"status": c.Writer.Status(),
-		"msg":    "注册成功",
-	})
+	ResponseSuccess(c, code)
 }
 
 // Login 登录
@@ -54,28 +45,20 @@ func Login(c *gin.Context) {
 		errs, ok := err.(validator.ValidationErrors)
 		if !ok {
 			// 非validator.ValidationErrors类型错误直接返回
-			c.JSON(http.StatusOK, gin.H{
-				"msg": err.Error(),
-			})
+			ResponseError(c, encode.CodeInvalidParam)
 			return
 		}
 		// validator.ValidationErrors类型错误则进行翻译
-		c.JSON(http.StatusOK, gin.H{
-			"msg": errs.Translate(translator.Trans),
-		})
+		ResponseErrorWithMsg(c, encode.CodeInvalidPassword, errs.Translate(translator.Trans))
 		return
 	}
 	fmt.Println(p)
 	// 业务逻辑处理
-	if err := logic.Login(p); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"msg": "账号或密码错误",
-		})
+	token, code, err := logic.Login(p)
+	if err != nil {
+		ResponseErrorWithMsg(c, code, error.Error(err))
 		return
 	}
 	// 返回数据
-	c.JSON(http.StatusOK, gin.H{
-		"status": c.Writer.Status(),
-		"msg":    "登录成功",
-	})
+	ResponseSuccess(c, token)
 }
