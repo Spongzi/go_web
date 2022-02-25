@@ -26,6 +26,7 @@ func Init(conf *settings.MysqlConfig) (err error) {
 	db.SetMaxOpenConns(conf.MaxOpenConn)
 	db.SetMaxIdleConns(conf.MaxIdleConn)
 	if err != nil {
+		fmt.Println("我是在这里报的错误", err)
 		return err
 	}
 	return

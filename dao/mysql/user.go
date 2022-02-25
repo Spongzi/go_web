@@ -3,10 +3,10 @@ package mysql
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"go.uber.org/zap"
 	"webapp/controllers/encode"
+	"webapp/controllers/errcode"
 	"webapp/models"
 )
 
@@ -35,7 +35,7 @@ func InsertUser(user *models.User) (err error) {
 func CheckingPassword(p *models.User) (code encode.ResCode, err error) {
 	if !CheckUserExist(p.Username) {
 		zap.L().Error("用户名不存在")
-		return encode.CodeUserNotExist, errors.New("用户不存在")
+		return encode.CodeUserNotExist, errcode.ErrorUserNotExist
 	}
 	sqlStr := "select password from USER where username = ?;"
 	var password string
@@ -45,7 +45,7 @@ func CheckingPassword(p *models.User) (code encode.ResCode, err error) {
 		return encode.CodeServerBusy, err
 	}
 	if password != encryptPassword(p.Password) {
-		return encode.CodeInvalidPassword, errors.New("密码错误")
+		return encode.CodeInvalidPassword, errcode.ErrorPasswordFailed
 	}
 	return encode.CodeSuccess, nil
 }

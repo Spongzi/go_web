@@ -1,8 +1,8 @@
 package logic
 
 import (
-	"errors"
 	"webapp/controllers/encode"
+	"webapp/controllers/errcode"
 	"webapp/dao/mysql"
 	"webapp/models"
 	"webapp/pkg/jwtToken"
@@ -13,7 +13,7 @@ func Register(p *models.ParamsUser) (code encode.ResCode, err error) {
 	// 校验用户是否存在
 	isExist := mysql.CheckUserExist(p.Username)
 	if isExist {
-		return encode.CodeUserExist, errors.New("用户名已存在，请更换用户名")
+		return encode.CodeUserExist, errcode.ErrorUserIsExist
 	}
 	// 生成UID
 	userId := sf.GenID()
